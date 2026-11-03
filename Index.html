@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adopción Los Arrabaleros</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+  <!-- Enlace a la hoja de estilos externa -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header class="brand">
+  <div class="wrap">
+    <div class="logo">
+      <div class="logo-mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="10" r="2"></circle><circle cx="9.5" cy="5.5" r="2"></circle><circle cx="14.5" cy="5.5" r="2"></circle><circle cx="18.5" cy="10" r="2"></circle><path d="M12 12c-3 0-6 3.5-6 6 0 1.7 1.3 2.5 3 2.5 1.2 0 2-.6 3-.6s1.8.6 3 .6c1.7 0 3-.8 3-2.5 0-2.5-3-6-6-6z"></path></svg>
+      </div>
+      <div><b>Los Arrabaleros</b><span>Huellitas a un Clic</span></div>
+    </div>
+    <span class="place">Temuco · La Araucanía</span>
+  </div>
+</header>
+<div class="demo"><div class="wrap">Maqueta del proyecto RSU: puedes llenarla para probarla, pero las respuestas no se envían a ningún lugar.</div></div>
+
+<main class="wrap">
+  <div id="formView" style="display:flex;flex-direction:column;gap:20px">
+    <section class="card">
+      <span class="eyebrow">Formulario de postulación</span>
+      <h1>Solicitud de adopción de mascotas</h1>
+      <p class="lead">Gracias por querer darle un hogar a uno de nuestros rescatados. Este formulario nos ayuda a conocerte y a encontrar la mejor compatibilidad entre tu hogar y la mascota. Enviarlo no asegura la adopción: revisaremos tu postulación y te contactaremos para una entrevista y una visita.</p>
+      <div class="chips">
+        <span class="chip">10 a 12 minutos</span>
+        <span class="chip" id="countChip">7 secciones</span>
+        <span class="chip" style="background:var(--warm-tint);color:var(--warm-tint-fg)">Perros y gatos</span>
+      </div>
+      <div class="reqs">
+        <h3>Requisitos para adoptar</h3>
+        <ul>
+          <li><strong>Gatos:</strong> vivirán exclusivamente dentro de casa (indoor).</li>
+          <li><strong>Perros:</strong> terreno o patio completamente cerrado.</li>
+          <li><strong>Tiempo:</strong> disponibilidad para su adaptación, sobre todo en perros recién llegados.</li>
+          <li><strong>Cuidados:</strong> paseos y visitas al veterinario.</li>
+          <li><strong>Esterilización:</strong> las mascotas mayores de 2 meses se entregan esterilizadas; las menores, con compromiso de esterilización gratuita.</li>
+        </ul>
+      </div>
+      <p class="small">Las preguntas marcadas con <span class="star">*</span> son obligatorias.</p>
+    </section>
+
+    <nav class="steps" id="steps" aria-label="Secciones del formulario"></nav>
+
+    <form id="adoptForm" style="display:flex;flex-direction:column;gap:20px">
+      <div id="sections" style="display:flex;flex-direction:column;gap:20px"></div>
+      <section class="card" style="align-items:flex-start">
+        <h2>Antes de enviar</h2>
+        <p class="lead" style="font-size:16px">Revisa que tus datos de contacto estén correctos. Te contactaremos, normalmente dentro de 1 a 2 días, para coordinar la entrevista y la visita domiciliaria.</p>
+        <p class="error" id="formError" hidden>Faltan respuestas obligatorias. Revisa la pregunta marcada y vuelve a enviar.</p>
+        <button class="btn" type="submit" id="submitBtn">Enviar solicitud</button>
+      </section>
+    </form>
+  </div>
+
+  <section class="card" id="doneView" hidden>
+    <div class="done-head">
+      <div class="done-mark" aria-hidden="true">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="10" r="2"></circle><circle cx="9.5" cy="5.5" r="2"></circle><circle cx="14.5" cy="5.5" r="2"></circle><circle cx="18.5" cy="10" r="2"></circle><path d="M12 12c-3 0-6 3.5-6 6 0 1.7 1.3 2.5 3 2.5 1.2 0 2-.6 3-.6s1.8.6 3 .6c1.7 0 3-.8 3-2.5 0-2.5-3-6-6-6z"></path></svg>
+      </div>
+      <h1 style="font-size:30px">¡Recibimos tu solicitud!</h1>
+      <p class="lead" id="doneMsg" style="text-align:center">Gracias. Te contactaremos por WhatsApp o correo, normalmente dentro de 1 a 2 días.</p>
+    </div>
+    <h2>¿Qué sigue?</h2>
+    <ol class="next">
+      <li><span class="num">1</span><div><b>Revisión de tu solicitud</b><span class="d">Evaluamos la compatibilidad con la mascota.</span></div></li>
+      <li><span class="num">2</span><div><b>Entrevista y visita domiciliaria</b><span class="d">Coordinamos contigo un horario.</span></div></li>
+      <li><span class="num">3</span><div><b>Contrato, ficha y entrega</b><span class="d">Firmas el contrato y la ficha de adopción y conoces a tu nuevo compañero.</span></div></li>
+      <li><span class="num">4</span><div><b>Seguimiento de por vida</b><span class="d">Te escribimos al día siguiente, a la semana y en cada esterilización o vacuna; luego, al menos una vez al año.</span></div></li>
+    </ol>
+    <div><button class="btn ghost" type="button" id="backBtn">Volver al formulario</button></div>
+  </section>
+
+  <footer>Los Arrabaleros · Temuco. Formulario desarrollado junto a estudiantes de Ingeniería Civil Industrial de la Universidad Autónoma de Chile, proyecto RSU «Huellitas a un Clic».</footer>
+</main>
+
+<!-- Enlace al archivo de lógica JavaScript -->
+<script src="./scripts.js"></script>
+</body>
+</html>
