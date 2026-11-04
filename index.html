@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Adopción Los Arrabaleros</title>
+  <title>Adopción Los Arrabaleros · Huellitas a un Clic</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-  <!-- Enlace a la hoja de estilos externa -->
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -22,27 +21,26 @@
     <span class="place">Temuco · La Araucanía</span>
   </div>
 </header>
-<div class="demo"><div class="wrap">Maqueta del proyecto RSU: puedes llenarla para probarla, pero las respuestas no se envían a ningún lugar.</div></div>
 
 <main class="wrap">
   <div id="formView" style="display:flex;flex-direction:column;gap:20px">
     <section class="card">
-      <span class="eyebrow">Formulario de postulación</span>
+      <span class="eyebrow">Formulario oficial de postulación</span>
       <h1>Solicitud de adopción de mascotas</h1>
-      <p class="lead">Gracias por querer darle un hogar a uno de nuestros rescatados. Este formulario nos ayuda a conocerte y a encontrar la mejor compatibilidad entre tu hogar y la mascota. Enviarlo no asegura la adopción: revisaremos tu postulación y te contactaremos para una entrevista y una visita.</p>
+      <p class="lead">Gracias por querer darle un hogar a uno de nuestros rescatados. Este formulario nos ayuda a conocerte y a encontrar la mejor compatibilidad entre tu hogar y la mascota. Enviarlo no asegura la adopción: revisaremos tu postulación conforme a la Ley 21.020 y te contactaremos para una entrevista y visita.</p>
       <div class="chips">
         <span class="chip">10 a 12 minutos</span>
         <span class="chip" id="countChip">7 secciones</span>
         <span class="chip" style="background:var(--warm-tint);color:var(--warm-tint-fg)">Perros y gatos</span>
       </div>
       <div class="reqs">
-        <h3>Requisitos para adoptar</h3>
+        <h3>Requisitos esenciales para adoptar</h3>
         <ul>
-          <li><strong>Gatos:</strong> vivirán exclusivamente dentro de casa (indoor).</li>
-          <li><strong>Perros:</strong> terreno o patio completamente cerrado.</li>
-          <li><strong>Tiempo:</strong> disponibilidad para su adaptación, sobre todo en perros recién llegados.</li>
-          <li><strong>Cuidados:</strong> paseos y visitas al veterinario.</li>
-          <li><strong>Esterilización:</strong> las mascotas mayores de 2 meses se entregan esterilizadas; las menores, con compromiso de esterilización gratuita.</li>
+          <li><strong>Mayoría de edad:</strong> debes tener al menos 18 años cumplidos.</li>
+          <li><strong>Gatos:</strong> vivirán exclusivamente dentro de casa (indoor) con mallas de protección.</li>
+          <li><strong>Perros:</strong> terreno o patio completamente cerrado para evitar escapes.</li>
+          <li><strong>Tiempo y cuidados:</strong> disponibilidad para su adaptación, paseos regulares y controles veterinarios.</li>
+          <li><strong>Esterilización:</strong> las mascotas mayores de 2 meses se entregan esterilizadas; las menores, con compromiso obligatorio de esterilización.</li>
         </ul>
       </div>
       <p class="small">Las preguntas marcadas con <span class="star">*</span> son obligatorias.</p>
@@ -50,12 +48,12 @@
 
     <nav class="steps" id="steps" aria-label="Secciones del formulario"></nav>
 
-    <form id="adoptForm" style="display:flex;flex-direction:column;gap:20px">
+    <form id="adoptForm" style="display:flex;flex-direction:column;gap:20px" novalidate>
       <div id="sections" style="display:flex;flex-direction:column;gap:20px"></div>
       <section class="card" style="align-items:flex-start">
         <h2>Antes de enviar</h2>
-        <p class="lead" style="font-size:16px">Revisa que tus datos de contacto estén correctos. Te contactaremos, normalmente dentro de 1 a 2 días, para coordinar la entrevista y la visita domiciliaria.</p>
-        <p class="error" id="formError" hidden>Faltan respuestas obligatorias. Revisa la pregunta marcada y vuelve a enviar.</p>
+        <p class="lead" style="font-size:16px">Verifica que tu RUT y número de WhatsApp estén bien escritos. Te contactaremos dentro de 1 a 2 días para informarte el resultado de la evaluación y coordinar la entrevista.</p>
+        <p class="error" id="formError" role="alert" hidden>Faltan respuestas obligatorias o hay datos con formato inválido. Revisa el campo marcado y vuelve a intentar.</p>
         <button class="btn" type="submit" id="submitBtn">Enviar solicitud</button>
       </section>
     </form>
@@ -71,18 +69,17 @@
     </div>
     <h2>¿Qué sigue?</h2>
     <ol class="next">
-      <li><span class="num">1</span><div><b>Revisión de tu solicitud</b><span class="d">Evaluamos la compatibilidad con la mascota.</span></div></li>
-      <li><span class="num">2</span><div><b>Entrevista y visita domiciliaria</b><span class="d">Coordinamos contigo un horario.</span></div></li>
-      <li><span class="num">3</span><div><b>Contrato, ficha y entrega</b><span class="d">Firmas el contrato y la ficha de adopción y conoces a tu nuevo compañero.</span></div></li>
-      <li><span class="num">4</span><div><b>Seguimiento de por vida</b><span class="d">Te escribimos al día siguiente, a la semana y en cada esterilización o vacuna; luego, al menos una vez al año.</span></div></li>
+      <li><span class="num">1</span><div><b>Revisión de tu solicitud</b><span class="d">Evaluamos los requisitos de tenencia responsable y compatibilidad con la mascota.</span></div></li>
+      <li><span class="num">2</span><div><b>Entrevista y visita domiciliaria</b><span class="d">Coordinamos contigo un horario para conocer el entorno donde vivirá.</span></div></li>
+      <li><span class="num">3</span><div><b>Contrato, ficha y entrega</b><span class="d">Firmas el contrato de adopción y conoces a tu nuevo compañero.</span></div></li>
+      <li><span class="num">4</span><div><b>Seguimiento post-adopción</b><span class="d">Te escribimos al día siguiente, a la semana y en cada esterilización o vacuna; luego, al menos una vez al año.</span></div></li>
     </ol>
-    <div><button class="btn ghost" type="button" id="backBtn">Volver al formulario</button></div>
+    <div><button class="btn ghost" type="button" id="backBtn">Enviar otra solicitud</button></div>
   </section>
 
-  <footer>Los Arrabaleros · Temuco. Formulario desarrollado junto a estudiantes de Ingeniería Civil Industrial de la Universidad Autónoma de Chile, proyecto RSU «Huellitas a un Clic».</footer>
+  <footer>Agrupación Adopciones Canil (Los Arrabaleros) · Temuco. Sistema desarrollado junto a estudiantes de Ingeniería Civil Industrial e Ingeniería Civil Informática de la Universidad Autónoma de Chile, proyecto RSU «Huellitas a un Clic».</footer>
 </main>
 
-<!-- Enlace al archivo de lógica JavaScript -->
 <script src="./scripts.js"></script>
 </body>
 </html>

@@ -3,9 +3,9 @@
   var S = [
     { t: 'Datos del postulante', d: 'Usaremos estos datos para contactarte y, si la adopción avanza, para el contrato y la ficha de adopción.', q: [
       ['Nombre completo', 'text', { half: 1, ph: 'Nombre y apellidos', id: 'nombre' }],
-      ['RUT', 'text', { half: 1, ph: '12.345.678-9' }],
-      ['Edad', 'number', { half: 1, ph: 'Años', hint: 'Debes ser mayor de 18 años.', min: 18 }],
-      ['Número de teléfono (WhatsApp)', 'tel', { half: 1, ph: '+56 9 1234 5678' }],
+      ['RUT', 'text', { half: 1, ph: '12.345.678-9', id: 'rut', hint: 'Se validará que sea un RUT chileno válido.' }],
+      ['Edad', 'number', { half: 1, ph: 'Años', hint: 'Debes ser mayor de 18 años.', min: 18, max: 105, id: 'edad' }],
+      ['Número de teléfono (WhatsApp)', 'tel', { half: 1, ph: '+56 9 1234 5678', id: 'telefono', hint: 'Incluye los 9 dígitos (ej.: +56 9 1234 5678).' }],
       ['Correo electrónico', 'email', { half: 1, ph: 'nombre@correo.cl' }],
       ['Ocupación', 'text', { half: 1, ph: 'Ej.: estudiante, docente, comerciante' }],
       ['Dirección', 'text', { ph: 'Calle, número, villa o población' }],
@@ -26,7 +26,7 @@
       ['¿Dónde dormirá la mascota?', 'choice', { opts: ['Dentro de la casa', 'En un espacio techado fuera de la casa', 'Otro'] }]
     ]},
     { t: 'Hogar y rutina', d: 'Queremos asegurarnos de que toda la familia esté preparada.', q: [
-      ['¿Cuántas personas viven en tu hogar?', 'number', { half: 1, ph: 'N.º de personas', min: 1 }],
+      ['¿Cuántas personas viven en tu hogar?', 'number', { half: 1, ph: 'N.º de personas', min: 1, max: 30 }],
       ['¿Hay niños en el hogar? Indica sus edades', 'text', { half: 1, opt: 1, ph: 'Ej.: 4 y 9 años', hint: 'Nos ayuda a elegir una mascota que se lleve bien con niños pequeños.' }],
       ['¿Todos los integrantes del hogar están de acuerdo con la adopción?', 'choice', { opts: SN }],
       ['¿Alguien del hogar tiene alergia a perros o gatos?', 'choice', { opts: ['Sí', 'No', 'No lo sé'] }],
@@ -69,7 +69,7 @@
   function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
   var n = 0, steps = document.getElementById('steps'), host = document.getElementById('sections');
-  var inputNames = []; // Arreglo para mapear el orden de los datos
+  var inputNames = []; // Mantiene el orden exacto de las 40 columnas hacia Google Sheets
   const API_URL = 'https://script.google.com/macros/s/AKfycbzrkOTRnawpuh5iehLj3eoVH9ZUwJXD0Sx_FApC-wIuGMJmx_j2ixzreZbZ8h_2viwiwA/exec'; 
   
   S.forEach(function (sec, si) {
@@ -82,18 +82,18 @@
     sec.q.forEach(function (row) {
       n += 1;
       var label = row[0], type = row[1], o = row[2] || {}, id = o.id || ('q' + n), req = !o.opt;
-      inputNames.push(id); // Guardamos el ID para recolectarlo luego en el mismo orden
+      inputNames.push(id);
       var qhtml = '<span class="n">' + n + '.</span> ' + esc(label) + (req ? star : '');
       var f;
       if (type === 'consent') {
-        f = el('div', { class: 'field' });
+        f = el('div', { class: 'field', id: 'wrap_' + id });
         var lab = el('label', { class: 'consent', for: id });
-        var cb = el('input', { type: 'checkbox', id: id, name: id, required: '' });
+        var cb = el('input', { type: 'checkbox', id: id, name: id, value: 'Sí, autorizo', required: '' });
         lab.appendChild(cb);
         lab.appendChild(el('span', { html: qhtml }));
         f.appendChild(lab);
       } else if (type === 'choice' || type === 'multi') {
-        f = el('fieldset', { class: 'field' + (o.half ? ' half' : '') });
+        f = el('fieldset', { class: 'field' + (o.half ? ' half' : ''), id: 'wrap_' + id });
         f.appendChild(el('legend', { class: 'q', html: qhtml }));
         if (o.hint) f.appendChild(el('span', { class: 'hint' }, o.hint));
         var opts = el('div', { class: 'opts' });
@@ -107,12 +107,13 @@
         });
         f.appendChild(opts);
       } else {
-        f = el('div', { class: 'field' + (o.half ? ' half' : '') });
+        f = el('div', { class: 'field' + (o.half ? ' half' : ''), id: 'wrap_' + id });
         f.appendChild(el('label', { class: 'q', for: id, html: qhtml }));
         if (o.hint) f.appendChild(el('span', { class: 'hint' }, o.hint));
         var input = type === 'area' ? el('textarea', { id: id, name: id, rows: '3' }) : el('input', { type: type, id: id, name: id });
         if (o.ph) input.setAttribute('placeholder', o.ph);
         if (o.min) input.setAttribute('min', String(o.min));
+        if (o.max) input.setAttribute('max', String(o.max));
         if (req) input.required = true;
         f.appendChild(input);
       }
@@ -123,13 +124,186 @@
   });
   document.getElementById('countChip').textContent = S.length + ' secciones · ' + n + ' preguntas';
 
+  // --- VALIDACIÓN Y FORMATEO DE RUT CHILENO (MÓDULO 11) ---
+  function limpiarRut(rut) {
+    return rut.replace(/[^0-9kK]/g, '').toUpperCase();
+  }
+
+  function formatearRut(rut) {
+    var limpio = limpiarRut(rut);
+    if (limpio.length <= 1) return limpio;
+    var cuerpo = limpio.slice(0, -1);
+    var dv = limpio.slice(-1);
+    return cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + dv;
+  }
+
+  function validarRutChileno(rut) {
+    var limpio = limpiarRut(rut);
+    if (limpio.length < 8 || limpio.length > 9) return false;
+    var cuerpo = limpio.slice(0, -1);
+    var dv = limpio.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) return false;
+
+    var suma = 0, multiplo = 2;
+    for (var i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo.charAt(i), 10) * multiplo;
+      multiplo = multiplo < 7 ? multiplo + 1 : 2;
+    }
+    var dvEsperado = 11 - (suma % 11);
+    var dvCalc = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : String(dvEsperado);
+    return dv === dvCalc;
+  }
+
+  var rutInput = document.getElementById('rut');
+  if (rutInput) {
+    rutInput.addEventListener('input', function () {
+      var pos = this.selectionStart;
+      var lenAntes = this.value.length;
+      this.value = formatearRut(this.value);
+      var lenDespues = this.value.length;
+      this.setCustomValidity('');
+      this.classList.remove('input-error');
+      if (this.selectionStart != null) {
+        this.setSelectionRange(pos + (lenDespues - lenAntes), pos + (lenDespues - lenAntes));
+      }
+    });
+  }
+
+  // --- VALIDACIÓN Y FORMATEO DE TELÉFONO CHILENO ---
+  function validarTelefonoChileno(tel) {
+    var digitos = tel.replace(/\D/g, '');
+    // Acepta 9 dígitos (ej. 912345678) o 11 dígitos con código país (56912345678)
+    if (digitos.length === 9 && /^[2-9]\d{8}$/.test(digitos)) return true;
+    if (digitos.length === 11 && /^56[2-9]\d{8}$/.test(digitos)) return true;
+    return false;
+  }
+
+  function normalizarTelefono(tel) {
+    var digitos = tel.replace(/\D/g, '');
+    if (digitos.length === 9) digitos = '56' + digitos;
+    if (digitos.length === 11 && digitos.indexOf('56') === 0) {
+      return '+' + digitos.slice(0, 2) + ' ' + digitos.slice(2, 3) + ' ' + digitos.slice(3, 7) + ' ' + digitos.slice(7);
+    }
+    return tel.trim();
+  }
+
+  var telInput = document.getElementById('telefono');
+  if (telInput) {
+    telInput.addEventListener('input', function () {
+      this.setCustomValidity('');
+      this.classList.remove('input-error');
+    });
+    telInput.addEventListener('blur', function () {
+      if (this.value.trim()) this.value = normalizarTelefono(this.value);
+    });
+  }
+
+  // --- LÓGICA CONDICIONAL PARA EVITAR RESPUESTAS CONTRADICTORIAS ---
+  // Función auxiliar para seleccionar o restringir una opción específica en un grupo de radio buttons
+  function configurarPreguntaCondicional(qName, autoValor, debeBloquear, opcionDeshabilitada) {
+    var wrap = document.getElementById('wrap_' + qName);
+    var radios = document.querySelectorAll('input[name="' + qName + '"]');
+    if (!wrap || !radios.length) return;
+
+    if (debeBloquear) {
+      wrap.classList.add('auto-locked');
+      radios.forEach(function (r) {
+        r.checked = (r.value === autoValor);
+        r.parentElement.classList.remove('disabled-opt');
+      });
+    } else {
+      wrap.classList.remove('auto-locked');
+      radios.forEach(function (r) {
+        if (r.value === opcionDeshabilitada) {
+          if (r.checked) r.checked = false;
+          r.parentElement.classList.add('disabled-opt');
+        } else {
+          r.parentElement.classList.remove('disabled-opt');
+        }
+      });
+    }
+  }
+
+  // 1. Condicional por Especie: Pregunta 9 (q9) -> Perro vs Gato
+  // q16: Patio cerrado (Perro), q17: Malla en ventanas (Gato), q31: Paseos (Perro), q33: Indoor (Gato)
+  var radiosEspecie = document.querySelectorAll('input[name="q9"]');
+  radiosEspecie.forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      var esPerro = (this.value === 'Perro');
+      var esGato = (this.value === 'Gato');
+
+      // Si adopta Perro: bloquear preguntas de gato con "No aplica (adopto un perro)" y habilitar las de perro (bloqueando la opción "No aplica (adopto un gato)")
+      configurarPreguntaCondicional('q16', 'No aplica (adopto un gato)', esGato, 'No aplica (adopto un gato)');
+      configurarPreguntaCondicional('q31', 'No aplica (adopto un gato)', esGato, 'No aplica (adopto un gato)');
+
+      configurarPreguntaCondicional('q17', 'No aplica (adopto un perro)', esPerro, 'No aplica (adopto un perro)');
+      configurarPreguntaCondicional('q33', 'No aplica (adopto un perro)', esPerro, 'No aplica (adopto un perro)');
+    });
+  });
+
+  // 2. Condicional por Tenencia de Vivienda: Pregunta 14 (q14) -> Propia / Arrendada / De un familiar
+  // q15: Si arriendas, ¿el contrato o propietario permiten mascotas?
+  var radiosTenencia = document.querySelectorAll('input[name="q14"]');
+  radiosTenencia.forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      var esArrendada = (this.value === 'Arrendada');
+      configurarPreguntaCondicional('q15', 'No aplica', !esArrendada, 'No aplica');
+    });
+  });
+
+  // 3. Exclusión mutua en pregunta 38 (q38 - Voluntariado): Si marca "Por ahora no", desmarca las demás y viceversa
+  var checksVoluntario = document.querySelectorAll('input[name="q38"]');
+  checksVoluntario.forEach(function (chk) {
+    chk.addEventListener('change', function () {
+      if (this.value === 'Por ahora no' && this.checked) {
+        checksVoluntario.forEach(function (c) { if (c !== chk) c.checked = false; });
+      } else if (this.value !== 'Por ahora no' && this.checked) {
+        checksVoluntario.forEach(function (c) { if (c.value === 'Por ahora no') c.checked = false; });
+      }
+    });
+  });
+
+  // --- MANEJO DEL ENVÍO DEL FORMULARIO ---
   var form = document.getElementById('adoptForm'), err = document.getElementById('formError'), submitBtn = document.getElementById('submitBtn');
-  
-  form.addEventListener('invalid', function () { err.hidden = false; }, true);
-  
+
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
     err.hidden = true;
+
+    // Validar RUT antes de evaluar validez general
+    if (rutInput) {
+      if (!validarRutChileno(rutInput.value)) {
+        rutInput.setCustomValidity('Por favor, ingresa un RUT chileno válido (ej.: 12.345.678-9).');
+        rutInput.classList.add('input-error');
+      } else {
+        rutInput.setCustomValidity('');
+        rutInput.classList.remove('input-error');
+      }
+    }
+
+    // Validar Teléfono antes de evaluar validez general
+    if (telInput) {
+      if (!validarTelefonoChileno(telInput.value)) {
+        telInput.setCustomValidity('Ingresa un teléfono chileno válido de 9 dígitos (ej.: +56 9 1234 5678).');
+        telInput.classList.add('input-error');
+      } else {
+        telInput.value = normalizarTelefono(telInput.value);
+        telInput.setCustomValidity('');
+        telInput.classList.remove('input-error');
+      }
+    }
+
+    // Comprobar si todo el formulario es válido
+    if (!form.checkValidity()) {
+      var firstInvalid = form.querySelector(':invalid');
+      if (firstInvalid) {
+        err.textContent = firstInvalid.validationMessage || 'Faltan respuestas obligatorias. Revisa la pregunta marcada y vuelve a enviar.';
+        err.hidden = false;
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
 
     // Prevención de envíos múltiples (UI Loading State)
     var originalText = submitBtn.textContent;
@@ -137,14 +311,15 @@
     submitBtn.textContent = 'Enviando solicitud...';
     submitBtn.style.opacity = '0.7';
 
-    // Recolectar datos en un arreglo respetando el orden exacto de las columnas
+    // Recolectar datos en un arreglo respetando el orden exacto de las 40 columnas
     var formData = new FormData(form);
     var arrayRespuestas = inputNames.map(function(name) {
       var vals = formData.getAll(name);
-      var valor = vals.length > 0 ? vals.join(', ') : ''; 
+      var valor = vals.length > 0 ? vals.join(', ') : '';
+      valor = valor.trim();
       
-      // Forzar formato de texto plano en Google Sheets si el dato empieza con "+" o "="
-      if (valor.charAt(0) === '+' || valor.charAt(0) === '=') {
+      // Forzar formato de texto plano en Google Sheets si empieza con "+", "=", "-" o "@"
+      if (/^[+=@-]/.test(valor)) {
         valor = "'" + valor;
       }
       
@@ -159,28 +334,27 @@
       body: JSON.stringify(payload)
     })
     .then(function(res) { 
-      return res.text(); // Leemos como texto para evitar bloqueos silenciosos
+      return res.text();
     })
     .then(function(text) {
-      console.log("RESPUESTA DE GOOGLE:", text);
-      
+      var data;
       try {
-        var data = JSON.parse(text);
-        if(data.status === 'success') {
-          var name = (document.getElementById('nombre').value || '').trim().split(/\s+/)[0];
-          document.getElementById('doneMsg').textContent = (name ? 'Gracias, ' + name + '. ' : 'Gracias. ') + 'Te contactaremos por WhatsApp o correo, normalmente dentro de 1 a 2 días.';
-          document.getElementById('formView').style.display = 'none';
-          document.getElementById('doneView').hidden = false;
-          window.scrollTo(0, 0);
-        } else {
-          throw new Error(data.message);
-        }
+        data = JSON.parse(text);
       } catch (parseError) {
-        throw new Error("Error en la respuesta del servidor.");
+        throw new Error('Error de comunicación con el servidor. Intenta nuevamente en unos segundos.');
+      }
+
+      if (data && data.status === 'success') {
+        var name = (document.getElementById('nombre').value || '').trim().split(/\s+/)[0];
+        document.getElementById('doneMsg').textContent = (name ? 'Gracias, ' + name + '. ' : 'Gracias. ') + 'Te contactaremos por WhatsApp o correo, normalmente dentro de 1 a 2 días.';
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('doneView').hidden = false;
+        window.scrollTo(0, 0);
+      } else {
+        throw new Error((data && data.message) || 'No se pudo registrar la postulación.');
       }
     })
     .catch(function(error) {
-      console.error("ERROR CAPTURADO:", error);
       err.textContent = error.message;
       err.hidden = false;
     })
@@ -192,6 +366,15 @@
   });
 
   document.getElementById('backBtn').addEventListener('click', function () {
+    form.reset();
+    // Restaurar estados condicionales visuales al reiniciar el formulario
+    ['q15', 'q16', 'q17', 'q31', 'q33'].forEach(function (qName) {
+      var wrap = document.getElementById('wrap_' + qName);
+      if (wrap) wrap.classList.remove('auto-locked');
+      document.querySelectorAll('input[name="' + qName + '"]').forEach(function (r) {
+        r.parentElement.classList.remove('disabled-opt');
+      });
+    });
     document.getElementById('doneView').hidden = true;
     document.getElementById('formView').style.display = 'flex';
     window.scrollTo(0, 0);

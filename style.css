@@ -1,4 +1,4 @@
-/* Un solo tema claro, igual al diseño del lienzo. Layout: una columna de formulario (máx. 760px) con banda de marca arriba; cada sección es una tarjeta. */
+/* Un solo tema claro. Layout: una columna de formulario (máx. 760px) con banda de marca arriba; cada sección es una tarjeta. */
 :root {
   --bg: #EEF3F0;
   --surface: #FFFFFF;
@@ -48,9 +48,6 @@ header.brand .wrap { padding-block: 16px; display: flex; align-items: center; ju
 
 .place { font-size: 14px; font-weight: 600; background: rgba(255,255,255,.16); padding: 6px 12px; border-radius: 999px; }
 
-.demo { background: var(--warm-tint); color: var(--warm-tint-fg); font-size: 14px; font-weight: 700; }
-.demo .wrap { padding-block: 10px; }
-
 main.wrap { padding-block: 24px 64px; display: flex; flex-direction: column; gap: 20px; }
 
 .card { background: var(--surface); border-radius: 20px; padding: clamp(20px, 4vw, 32px); display: flex; flex-direction: column; gap: 20px; }
@@ -73,7 +70,7 @@ p { margin: 0; }
 .small { font-size: 14px; color: var(--muted); }
 .star { color: var(--req); font-weight: 800; }
 
-/* MEJORA MÓVIL: Navegación horizontal fluida tipo carrusel */
+/* Navegación horizontal fluida tipo carrusel */
 nav.steps { 
   display: flex; 
   flex-wrap: nowrap; 
@@ -82,11 +79,9 @@ nav.steps {
   padding-bottom: 8px; 
   scroll-snap-type: x mandatory; 
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Oculta scrollbar en Firefox */
+  scrollbar-width: none;
 }
-nav.steps::-webkit-scrollbar {
-  display: none; /* Oculta scrollbar en Chrome/Safari */
-}
+nav.steps::-webkit-scrollbar { display: none; }
 nav.steps a { 
   display: inline-flex; 
   align-items: center; 
@@ -99,8 +94,8 @@ nav.steps a {
   text-decoration: none; 
   font-size: 14px; 
   font-weight: 700; 
-  flex: 0 0 auto; /* Evita que el botón se aplaste en pantallas chicas */
-  scroll-snap-align: start; /* Asegura un deslizamiento suave y preciso */
+  flex: 0 0 auto;
+  scroll-snap-align: start;
 }
 
 nav.steps a:focus-visible, .opt:focus-within, button:focus-visible, input:focus-visible, textarea:focus-visible { 
@@ -115,8 +110,19 @@ nav.steps a:focus-visible, .opt:focus-within, button:focus-visible, input:focus-
 .sec-head p { color: var(--muted); font-size: 15px; margin-top: 2px; }
 
 .fields { display: flex; flex-wrap: wrap; gap: 22px 20px; }
-.field { flex: 1 1 100%; min-width: 0; display: flex; flex-direction: column; gap: 8px; border: 0; padding: 0; margin: 0; }
+.field { flex: 1 1 100%; min-width: 0; display: flex; flex-direction: column; gap: 8px; border: 0; padding: 0; margin: 0; transition: opacity 0.2s ease; }
 .field.half { flex: 1 1 280px; }
+
+/* Estado para campos que se autocompletan por lógica condicional (Perro/Gato/Arriendo) */
+.field.auto-locked {
+  opacity: 0.6;
+  background: var(--surface-soft);
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+}
+.field.auto-locked .opts { pointer-events: none; }
+.opt.disabled-opt { opacity: 0.45; pointer-events: none; }
 
 .q { font-size: 16px; font-weight: 700; color: var(--fg); padding: 0; }
 .q .n { color: var(--muted); }
@@ -125,6 +131,10 @@ nav.steps a:focus-visible, .opt:focus-within, button:focus-visible, input:focus-
 input[type="text"], input[type="number"], input[type="email"], input[type="tel"], textarea {
   width: 100%; min-height: 48px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px;
   font: inherit; color: var(--fg); background: var(--surface);
+}
+input.input-error, textarea.input-error {
+  border-color: var(--req);
+  background: #FFF8F6;
 }
 textarea { min-height: 104px; resize: vertical; }
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
@@ -142,7 +152,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
 .btn:disabled { cursor: not-allowed; }
 .btn.ghost { background: transparent; color: var(--brand-tint-fg); border: 1.5px solid var(--line); }
 
-.error { color: var(--req); font-weight: 700; font-size: 15px; }
+.error { color: var(--req); font-weight: 700; font-size: 15px; background: #FDECE9; padding: 12px 16px; border-radius: 10px; border-left: 4px solid var(--req); width: 100%; }
 
 .done-head { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
 .done-mark { width: 76px; height: 76px; border-radius: 999px; background: var(--brand); color: var(--brand-fg); display: grid; place-items: center; }
