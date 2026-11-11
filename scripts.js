@@ -51,7 +51,6 @@
       ['Si en algún momento no pudieras seguir cuidándola, ¿te comprometes a avisarnos en lugar de regalarla o abandonarla?', 'choice', { opts: SN }]
     ]},
     { t: 'Para terminar', d: 'Últimos detalles antes de enviar tu solicitud.', q: [
-      ['Además de adoptar, ¿te gustaría apoyar a Los Arrabaleros de otra forma?', 'multi', { opt: 1, hint: 'Puedes marcar más de una opción. Para ser hogar temporal se necesitan condiciones como terreno cerrado y no tener animales enfermos en casa.', opts: ['Ser hogar temporal', 'Ayudar con traslados', 'Apoyar en jornadas de adopción', 'Aportar con donaciones', 'Por ahora no'] }],
       ['Información adicional que quieras compartir', 'area', { opt: 1, ph: 'Opcional' }],
       ['Autorizo a Los Arrabaleros a usar mis datos personales solo para evaluar esta solicitud y hacer el seguimiento de la adopción.', 'consent', {}]
     ]}
@@ -251,17 +250,7 @@
     });
   });
 
-  // 3. Exclusión mutua en pregunta 38 (q38 - Voluntariado): Si marca "Por ahora no", desmarca las demás y viceversa
-  var checksVoluntario = document.querySelectorAll('input[name="q38"]');
-  checksVoluntario.forEach(function (chk) {
-    chk.addEventListener('change', function () {
-      if (this.value === 'Por ahora no' && this.checked) {
-        checksVoluntario.forEach(function (c) { if (c !== chk) c.checked = false; });
-      } else if (this.value !== 'Por ahora no' && this.checked) {
-        checksVoluntario.forEach(function (c) { if (c.value === 'Por ahora no') c.checked = false; });
-      }
-    });
-  });
+
 
   // --- MANEJO DEL ENVÍO DEL FORMULARIO ---
   var form = document.getElementById('adoptForm'), err = document.getElementById('formError'), submitBtn = document.getElementById('submitBtn');
