@@ -14,7 +14,7 @@
     { t: 'Mascota de interés', d: 'Cuéntanos qué compañero estás buscando. Nota: Indicar una mascota no asegura su reserva inmediata, esto se evalúa en la entrevista.', q: [
       ['¿Qué tipo de mascota quieres adoptar?', 'choice', { opts: ['Perro', 'Gato'] }],
       ['¿Cómo conociste a Los Arrabaleros?', 'choice', { opts: ['Jornada de adopción', 'Instagram', 'Facebook', 'WhatsApp', 'Recomendación de un conocido', 'Otro'] }],
-      ['Si te interesa una mascota que hayamos publicado, indica su nombre', 'text', { opt: 1, ph: 'Nombre de la mascota', id: 'mascota_nombre' }],
+      ['Si te interesa una mascota que hayamos publicado, indica su nombre', 'select', { opt: 1, ph: 'Nombre de la mascota', id: 'mascota_nombre', hint: 'Se muestran las mascotas actualmente disponibles para adopción.' }],
       ['¿Qué características buscas en tu futura mascota?', 'area', { opt: 1, ph: 'Edad, tamaño, carácter, nivel de energía…' }]
     ]},
     { t: 'Vivienda', d: 'Nos ayuda a saber si el espacio es seguro y adecuado para la mascota.', q: [
@@ -56,6 +56,7 @@
     ]}
   ];
 
+  // Función utilitaria para creación rápida de nodos DOM
   function el(tag, attrs, text) {
     var e = document.createElement(tag);
     if (attrs) Object.keys(attrs).forEach(function (k) {
@@ -69,8 +70,9 @@
 
   var n = 0, steps = document.getElementById('steps'), host = document.getElementById('sections');
   var inputNames = []; // Mantiene el orden exacto de las 40 columnas hacia Google Sheets
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzrkOTRnawpuh5iehLj3eoVH9ZUwJXD0Sx_FApC-wIuGMJmx_j2ixzreZbZ8h_2viwiwA/exec'; 
-  
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzrkOTRnawpuh5iehLj3eoVH9ZUwJXD0Sx_FApC-wIuGMJmx_j2ixzreZbZ8h_2viwiwA/exec';
+
+  // Renderizado dinámico de secciones y preguntas
   S.forEach(function (sec, si) {
     var num = si + 1;
     var a = el('a', { href: '#sec' + num, html: '<span class="num">' + num + '</span>' + esc(sec.t) });
@@ -105,6 +107,14 @@
           opts.appendChild(l);
         });
         f.appendChild(opts);
+      } else if (type === 'select') {
+        f = el('div', { class: 'field' + (o.half ? ' half' : ''), id: 'wrap_' + id });
+        f.appendChild(el('label', { class: 'q', for: id, html: qhtml }));
+        if (o.hint) f.appendChild(el('span', { class: 'hint' }, o.hint));
+        var sel = el('select', { id: id, name: id });
+        sel.appendChild(el('option', { value: '' }, 'Cargando mascotas disponibles...'));
+        if (req) sel.required = true;
+        f.appendChild(sel);
       } else {
         f = el('div', { class: 'field' + (o.half ? ' half' : ''), id: 'wrap_' + id });
         f.appendChild(el('label', { class: 'q', for: id, html: qhtml }));
@@ -122,6 +132,56 @@
     host.appendChild(card);
   });
   document.getElementById('countChip').textContent = S.length + ' secciones · ' + n + ' preguntas';
+
+  // --- CARGA DINÁMICA DE NOMBRES DE MASCOTAS DISPONIBLES DESDE GOOGLE SHEETS ---
+  var catalogoMascotas = [];
+  var selectMascota = document.getElementById('mascota_nombre');
+
+  function actualizarOpcionesMascotas(especieElegida) {
+    if (!selectMascota || selectMascota.tagName !== 'SELECT') return;
+    var valorPrevio = selectMascota.value;
+    selectMascota.innerHTML = '';
+
+    // Opción por defecto para quienes aún no tienen un animal específico decidido
+    selectMascota.appendChild(el('option', { value: '' }, '— No tengo una específica / Busco recomendación —'));
+
+    var listaFiltrada = catalogoMascotas.filter(function (m) {
+      if (!especieElegida) return true;
+      return (m.especie || '').toLowerCase() === especieElegida.toLowerCase();
+    });
+
+    listaFiltrada.forEach(function (m) {
+      var etiqueta = especieElegida ? m.nombre : m.nombre + (m.especie ? ' (' + m.especie + ')' : '');
+      var opt = el('option', { value: m.nombre }, etiqueta);
+      if (m.nombre === valorPrevio) opt.selected = true;
+      selectMascota.appendChild(opt);
+    });
+  }
+
+  // Consulta GET al backend de Google Apps Script al iniciar el formulario
+  fetch(API_URL)
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data && data.status === 'success' && Array.isArray(data.mascotas)) {
+        catalogoMascotas = data.mascotas;
+        var radioMarcado = document.querySelector('input[name="q9"]:checked');
+        actualizarOpcionesMascotas(radioMarcado ? radioMarcado.value : '');
+      } else {
+        throw new Error('Respuesta sin catálogo válido');
+      }
+    })
+    .catch(function () {
+      // Fallback: si falla la conexión o el endpoint aún no está publicado, convierte el select en input de texto
+      if (selectMascota && selectMascota.parentNode) {
+        var fallbackInput = el('input', {
+          type: 'text',
+          id: 'mascota_nombre',
+          name: 'mascota_nombre',
+          placeholder: 'Nombre de la mascota (opcional)'
+        });
+        selectMascota.parentNode.replaceChild(fallbackInput, selectMascota);
+      }
+    });
 
   // --- VALIDACIÓN Y FORMATEO DE RUT CHILENO (MÓDULO 11) ---
   function limpiarRut(rut) {
@@ -171,7 +231,6 @@
   // --- VALIDACIÓN Y FORMATEO DE TELÉFONO CHILENO ---
   function validarTelefonoChileno(tel) {
     var digitos = tel.replace(/\D/g, '');
-    // Acepta 9 dígitos (ej. 912345678) o 11 dígitos con código país (56912345678)
     if (digitos.length === 9 && /^[2-9]\d{8}$/.test(digitos)) return true;
     if (digitos.length === 11 && /^56[2-9]\d{8}$/.test(digitos)) return true;
     return false;
@@ -198,7 +257,6 @@
   }
 
   // --- LÓGICA CONDICIONAL PARA EVITAR RESPUESTAS CONTRADICTORIAS ---
-  // Función auxiliar para seleccionar o restringir una opción específica en un grupo de radio buttons
   function configurarPreguntaCondicional(qName, autoValor, debeBloquear, opcionDeshabilitada) {
     var wrap = document.getElementById('wrap_' + qName);
     var radios = document.querySelectorAll('input[name="' + qName + '"]');
@@ -224,24 +282,24 @@
   }
 
   // 1. Condicional por Especie: Pregunta 9 (q9) -> Perro vs Gato
-  // q16: Patio cerrado (Perro), q17: Malla en ventanas (Gato), q31: Paseos (Perro), q33: Indoor (Gato)
   var radiosEspecie = document.querySelectorAll('input[name="q9"]');
   radiosEspecie.forEach(function (radio) {
     radio.addEventListener('change', function () {
       var esPerro = (this.value === 'Perro');
       var esGato = (this.value === 'Gato');
 
-      // Si adopta Perro: bloquear preguntas de gato con "No aplica (adopto un perro)" y habilitar las de perro (bloqueando la opción "No aplica (adopto un gato)")
       configurarPreguntaCondicional('q16', 'No aplica (adopto un gato)', esGato, 'No aplica (adopto un gato)');
       configurarPreguntaCondicional('q31', 'No aplica (adopto un gato)', esGato, 'No aplica (adopto un gato)');
 
       configurarPreguntaCondicional('q17', 'No aplica (adopto un perro)', esPerro, 'No aplica (adopto un perro)');
       configurarPreguntaCondicional('q33', 'No aplica (adopto un perro)', esPerro, 'No aplica (adopto un perro)');
+
+      // Filtrar el selector de nombres de mascotas según la especie seleccionada
+      actualizarOpcionesMascotas(this.value);
     });
   });
 
   // 2. Condicional por Tenencia de Vivienda: Pregunta 14 (q14) -> Propia / Arrendada / De un familiar
-  // q15: Si arriendas, ¿el contrato o propietario permiten mascotas?
   var radiosTenencia = document.querySelectorAll('input[name="q14"]');
   radiosTenencia.forEach(function (radio) {
     radio.addEventListener('change', function () {
@@ -249,8 +307,6 @@
       configurarPreguntaCondicional('q15', 'No aplica', !esArrendada, 'No aplica');
     });
   });
-
-
 
   // --- MANEJO DEL ENVÍO DEL FORMULARIO ---
   var form = document.getElementById('adoptForm'), err = document.getElementById('formError'), submitBtn = document.getElementById('submitBtn');
@@ -356,7 +412,7 @@
 
   document.getElementById('backBtn').addEventListener('click', function () {
     form.reset();
-    // Restaurar estados condicionales visuales al reiniciar el formulario
+    // Restaurar estados condicionales visuales y catálogo completo al reiniciar el formulario
     ['q15', 'q16', 'q17', 'q31', 'q33'].forEach(function (qName) {
       var wrap = document.getElementById('wrap_' + qName);
       if (wrap) wrap.classList.remove('auto-locked');
@@ -364,6 +420,7 @@
         r.parentElement.classList.remove('disabled-opt');
       });
     });
+    actualizarOpcionesMascotas('');
     document.getElementById('doneView').hidden = true;
     document.getElementById('formView').style.display = 'flex';
     window.scrollTo(0, 0);
